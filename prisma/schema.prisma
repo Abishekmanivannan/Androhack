@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -49,6 +50,8 @@ model Contribution {
   title            String
   description      String
   projectEventName String?   @map("project_event_name")
+  evidenceType     String?   @map("evidence_type")
+  evidenceUrl      String?   @map("evidence_url")
   status           String    @default("pending")
   pointsAwarded    Int       @default(0) @map("points_awarded")
   reviewerId       String?   @map("reviewer_id")
