@@ -3,169 +3,153 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import {
-  Activity,
-  Users,
-  AlertTriangle,
-  Sparkles,
-  Trophy,
-  BarChart3,
-  ChevronLeft,
-} from "lucide-react";
-
-interface CategoryStatItem {
-  id: string;
-  name: string;
-  colorHex: string;
-  verifiedCount: number;
-}
-
-interface TopMemberItem {
-  id: string;
-  name: string;
-  totalXp: number;
-}
+import { Activity, Shield, Users, CheckCircle2, TrendingUp, Sparkles, AlertCircle, BarChart3 } from "lucide-react";
 
 interface HealthData {
+  healthScore: number;
   totalMembers: number;
-  activeCount: number;
-  activePercentage?: number;
-  participationRate: number;
-  categoryStats: CategoryStatItem[];
-  deficits: string[];
-  smartInsights?: string[];
-  topMembers: TopMemberItem[];
+  activeMembersCount: number;
+  inactiveMembersCount: number;
+  activityRate: number;
+  totalContributions: number;
+  verifiedContributions: number;
+  pendingContributions: number;
+  rejectedContributions: number;
+  totalXp30Days: number;
+  insights: string[];
+  categoryDistribution: { name: string; colorHex: string; count: number; percentage: number }[];
 }
 
-export default function ClubHealthPage() {
+export default function CoordinatorHealthPage() {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/coordinator/health")
-      .then((res) => res.json())
-      .then((data) => setHealth(data.health))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchHealthData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0B0F19] text-white">
-        <Navbar />
-        <main className="max-w-6xl mx-auto px-4 py-10 animate-pulse space-y-6">
-          <div className="h-40 pro-panel rounded-3xl bg-slate-900/40" />
-          <div className="h-64 pro-panel rounded-3xl bg-slate-900/40" />
-        </main>
-      </div>
-    );
-  }
+  const fetchHealthData = async () => {
+    try {
+      const res = await fetch("/api/coordinator/health");
+      if (res.ok) {
+        const data = await res.json();
+        setHealth(data);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-white">
+    <div className="min-h-screen bg-[#07090E] text-slate-100 flex flex-col font-sans">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Navigation Breadcrumb */}
-        <div>
-          <Link
-            href="/coordinator/queue"
-            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 mb-2 font-medium"
-          >
-            <ChevronLeft className="w-4 h-4" /> Back to Review Queue
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+          <div>
+            <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+              <Activity className="w-6 h-6 text-cyan-400" /> Real-Time Club Health Dashboard
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Calculated health metrics derived 100% from PostgreSQL database records & verified member activity
+            </p>
+          </div>
+
+          <Link href="/coordinator/queue" className="pro-btn-primary px-4 py-2 text-xs font-bold">
+            View Triage Queue
           </Link>
-          <h1 className="text-2xl font-extrabold tracking-tight flex items-center gap-2">
-            <Activity className="w-6 h-6 text-indigo-400" />
-            Club Engagement Health & Strategic Insights
-          </h1>
-          <p className="text-xs text-slate-400">
-            Real-time organizational intelligence, domain contribution deficits, and active retention tracking.
-          </p>
         </div>
 
-        {/* Top Summary Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="pro-panel p-6 rounded-3xl border border-slate-800 space-y-2">
-            <div className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-indigo-400" /> Active Member Ratio
-            </div>
-            <div className="text-3xl font-black text-indigo-400 font-mono">
-              {health?.activePercentage}%
-            </div>
-            <p className="text-xs text-slate-400">
-              {health?.activeCount} of {health?.totalMembers || 1} members active in last 30 days
-            </p>
-          </div>
-
-          <div className="pro-panel p-6 rounded-3xl border border-slate-800 space-y-2">
-            <div className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 text-amber-400" /> Domain Deficits
-            </div>
-            <div className="text-3xl font-black text-amber-400 font-mono">
-              {health?.deficits?.length || 0}
-            </div>
-            <p className="text-xs text-slate-400">
-              Functional categories with 0 contributions logged
-            </p>
-          </div>
-
-          <div className="pro-panel p-6 rounded-3xl border border-slate-800 space-y-2">
-            <div className="text-xs font-semibold text-slate-400 uppercase flex items-center gap-1.5">
-              <Trophy className="w-4 h-4 text-cyan-400" /> Top Contributor
-            </div>
-            <div className="text-xl font-extrabold text-cyan-300 truncate">
-              {health?.topMembers?.[0]?.name || "Alex Rivera"}
-            </div>
-            <p className="text-xs text-slate-400 font-mono">
-              {health?.topMembers?.[0]?.totalXp || 180} XP Total
-            </p>
-          </div>
-        </div>
-
-        {/* AI & Strategic Smart Insights Summary */}
-        <div className="pro-panel rounded-3xl p-6 space-y-4 border border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-slate-900">
-          <h2 className="text-base font-bold text-indigo-300 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-cyan-400" /> Automated Club Health Diagnostics
-          </h2>
-          <div className="space-y-2">
-            {health?.smartInsights?.map((insight: string, idx: number) => (
-              <div
-                key={idx}
-                className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs text-slate-200 flex items-start gap-2.5"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
-                <span>{insight}</span>
+        {loading ? (
+          <div className="py-16 text-center text-xs text-slate-400">Calculating Club Health metrics...</div>
+        ) : !health ? (
+          <div className="py-16 text-center text-slate-400">Failed to load health metrics.</div>
+        ) : (
+          <div className="space-y-8">
+            {/* Top Score Banner */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900 to-slate-950 border border-cyan-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Overall Club Health Index</div>
+                <div className="text-4xl sm:text-5xl font-extrabold text-white">{health.healthScore} / 100</div>
+                <p className="text-xs text-slate-300 max-w-lg">
+                  Health Index combines 30-day member participation ({health.activityRate}%) and verification ratio ({health.verifiedContributions} / {health.totalContributions || 1}).
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Category Contribution Distribution */}
-        <div className="pro-panel rounded-3xl p-6 space-y-4 border border-slate-800">
-          <h2 className="text-base font-bold flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-indigo-400" /> Category Breakdown & Volume
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {health?.categoryStats?.map((cat: CategoryStatItem) => (
-              <div
-                key={cat.id}
-                className="pro-card p-4 rounded-2xl space-y-2 border border-slate-800"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: cat.colorHex }}
-                  />
-                  <span className="text-xs font-bold">{cat.name}</span>
+              {/* Natural Language Insights Box */}
+              <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 max-w-md w-full">
+                <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                  <Sparkles className="w-4 h-4" /> Calculated Insights
                 </div>
-                <div className="text-2xl font-black text-white font-mono">
-                  {cat.verifiedCount}
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  {health.insights.map((ins, idx) => (
+                    <p key={idx} className="leading-relaxed flex items-start gap-2">
+                      <span className="text-cyan-400 font-bold">•</span>
+                      <span>{ins}</span>
+                    </p>
+                  ))}
                 </div>
-                <div className="text-[11px] text-slate-400">Verified Activities</div>
               </div>
-            ))}
+            </div>
+
+            {/* Metrics Breakdown Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="pro-card p-5 space-y-2">
+                <div className="text-xs font-semibold text-slate-400">Active Members (30d)</div>
+                <div className="text-3xl font-extrabold text-white">{health.activeMembersCount} / {health.totalMembers}</div>
+                <div className="text-xs font-semibold text-emerald-400">{health.activityRate}% Participation Rate</div>
+              </div>
+
+              <div className="pro-card p-5 space-y-2">
+                <div className="text-xs font-semibold text-slate-400">Inactive Members</div>
+                <div className="text-3xl font-extrabold text-amber-400">{health.inactiveMembersCount}</div>
+                <div className="text-xs text-slate-400">Needs engagement prompt</div>
+              </div>
+
+              <div className="pro-card p-5 space-y-2">
+                <div className="text-xs font-semibold text-slate-400">Verified Contributions</div>
+                <div className="text-3xl font-extrabold text-white">{health.verifiedContributions}</div>
+                <div className="text-xs text-slate-400">{health.pendingContributions} pending review</div>
+              </div>
+
+              <div className="pro-card p-5 space-y-2">
+                <div className="text-xs font-semibold text-slate-400">30-Day XP Velocity</div>
+                <div className="text-3xl font-extrabold text-indigo-400">+{health.totalXp30Days} XP</div>
+                <div className="text-xs text-slate-400">Total club growth</div>
+              </div>
+            </div>
+
+            {/* Category Distribution Breakdown */}
+            <div className="pro-panel p-6 space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-indigo-400" /> Category Contribution Breakdown
+              </h2>
+
+              <div className="space-y-3">
+                {health.categoryDistribution.map((cat, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between text-xs font-semibold text-slate-300">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.colorHex }} />
+                        {cat.name}
+                      </span>
+                      <span>{cat.count} Contributions ({cat.percentage}%)</span>
+                    </div>
+
+                    <div className="h-2 rounded-full bg-slate-900 overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-500"
+                        style={{ width: `${cat.percentage}%`, backgroundColor: cat.colorHex }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

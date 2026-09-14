@@ -12,6 +12,8 @@ export interface UserSession {
   totalXp: number;
   currentLevel: string;
   department?: string;
+  portfolioPublic?: boolean;
+  skills?: string[];
 }
 
 interface AuthContextType {

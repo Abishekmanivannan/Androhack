@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0f19;
+  --background: #07090e;
   --foreground: #f8fafc;
-  --panel-bg: #111827;
-  --card-bg: #161f32;
-  --border-color: rgba(99, 102, 241, 0.16);
+  --panel-bg: rgba(13, 18, 30, 0.85);
+  --card-bg: rgba(17, 24, 39, 0.65);
+  --border-color: rgba(255, 255, 255, 0.08);
   --primary-indigo: #6366f1;
 }
 
@@ -20,25 +20,28 @@ body {
 
 /* Unified Professional Panel Utility */
 .pro-panel {
-  background-color: rgba(17, 24, 39, 0.85);
+  background-color: var(--panel-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  border-radius: 1rem;
 }
 
 .pro-card {
-  background-color: rgba(22, 31, 50, 0.65);
-  border: 1px solid rgba(99, 102, 241, 0.14);
+  background-color: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.875rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pro-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 12px 30px -6px rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 28px -6px rgba(99, 102, 241, 0.15);
   transform: translateY(-2px);
 }
 
+/* Button System */
 .pro-btn-primary {
   background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: #ffffff;
@@ -69,6 +72,7 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+/* Input Fields */
 .pro-input {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -82,13 +86,38 @@ body {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+/* Status Pill Badges */
+.badge-verified {
+  background-color: rgba(6, 78, 59, 0.8);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-pending {
+  background-color: rgba(120, 53, 15, 0.8);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-clarification {
+  background-color: rgba(49, 46, 129, 0.8);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.badge-rejected {
+  background-color: rgba(136, 19, 55, 0.8);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #07090e;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
