@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -8,78 +8,73 @@ generator client {
 }
 
 model User {
-  id              String      @id @default(uuid())
-  email           String      @unique
-  passwordHash    String
-  name            String
-  role            String      @default("member") // "member", "coordinator", "admin"
-  department      String?
-  avatarUrl       String?
-  skills          String      @default("[]") // JSON string array of skills
-  totalXp         Int         @default(0)
-  currentLevel    String      @default("Newcomer")
-  portfolioPublic Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-
-  contributions         Contribution[]         @relation("UserContributions")
-  reviewedContributions Contribution[]         @relation("ReviewerContributions")
-  userBadges            UserBadge[]
-  clarificationMessages ClarificationMessage[]
+  id                    String                 @id @default(uuid())
+  email                 String                 @unique
+  passwordHash          String
+  name                  String
+  role                  String                 @default("member")
+  department            String?
+  avatarUrl             String?
+  skills                String                 @default("[]")
+  totalXp               Int                    @default(0)
+  currentLevel          String                 @default("Newcomer")
+  portfolioPublic       Boolean                @default(true)
+  createdAt             DateTime               @default(now())
   auditLogs             AuditLog[]
+  clarificationMessages ClarificationMessage[]
+  reviewedContributions Contribution[]         @relation("ReviewerContributions")
+  contributions         Contribution[]         @relation("UserContributions")
+  userBadges            UserBadge[]
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  baseXp      Int
-  colorHex    String
-  isActive    Boolean  @default(true)
-
+  id            String         @id @default(uuid())
+  name          String         @unique
+  baseXp        Int
+  colorHex      String
+  isActive      Boolean        @default(true)
   contributions Contribution[]
 }
 
 model Contribution {
-  id               String   @id @default(uuid())
-  userId           String
-  categoryId       String
-  title            String
-  description      String
-  projectEventName String
-  evidenceType     String   // "url", "file", "github"
-  evidenceUrl      String
-  status           String   @default("pending") // "draft", "pending", "verified", "rejected", "clarification"
-  pointsAwarded    Int      @default(0)
-  reviewerId       String?
-  reviewerNotes    String?
-  createdAt        DateTime @default(now())
-  verifiedAt       DateTime?
-
-  user                  User                   @relation("UserContributions", fields: [userId], references: [id], onDelete: Cascade)
-  reviewer              User?                  @relation("ReviewerContributions", fields: [reviewerId], references: [id])
-  category              Category               @relation(fields: [categoryId], references: [id])
+  id                    String                 @id @default(uuid())
+  userId                String
+  categoryId            String
+  title                 String
+  description           String
+  projectEventName      String
+  evidenceType          String
+  evidenceUrl           String
+  status                String                 @default("pending")
+  pointsAwarded         Int                    @default(0)
+  reviewerId            String?
+  reviewerNotes         String?
+  createdAt             DateTime               @default(now())
+  verifiedAt            DateTime?
   clarificationMessages ClarificationMessage[]
+  category              Category               @relation(fields: [categoryId], references: [id])
+  reviewer              User?                  @relation("ReviewerContributions", fields: [reviewerId], references: [id])
+  user                  User                   @relation("UserContributions", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ClarificationMessage {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   contributionId String
   senderId       String
   message        String
-  createdAt      DateTime @default(now())
-
-  contribution Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  contribution   Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
 }
 
 model Badge {
-  id                String   @id @default(uuid())
+  id                String      @id @default(uuid())
   name              String
   description       String
   iconKey           String
-  criteriaType      String   // "xp_threshold", "count_category", "streak"
+  criteriaType      String
   criteriaThreshold Int
-
-  userBadges UserBadge[]
+  userBadges        UserBadge[]
 }
 
 model UserBadge {
@@ -87,9 +82,8 @@ model UserBadge {
   userId     String
   badgeId    String
   unlockedAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
 }
@@ -100,8 +94,7 @@ model AuditLog {
   action       String
   targetEntity String
   targetId     String?
-  payload      String?  // JSON stringified payload
+  payload      String?
   createdAt    DateTime @default(now())
-
-  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  actor        User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
 }
