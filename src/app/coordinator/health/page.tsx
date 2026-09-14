@@ -13,8 +13,32 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
+interface CategoryStatItem {
+  id: string;
+  name: string;
+  colorHex: string;
+  verifiedCount: number;
+}
+
+interface TopMemberItem {
+  id: string;
+  name: string;
+  totalXp: number;
+}
+
+interface HealthData {
+  totalMembers: number;
+  activeCount: number;
+  activePercentage?: number;
+  participationRate: number;
+  categoryStats: CategoryStatItem[];
+  deficits: string[];
+  smartInsights?: string[];
+  topMembers: TopMemberItem[];
+}
+
 export default function ClubHealthPage() {
-  const [health, setHealth] = useState<any>(null);
+  const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -122,7 +146,7 @@ export default function ClubHealthPage() {
             <BarChart3 className="w-5 h-5 text-indigo-400" /> Category Breakdown & Volume
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {health?.categoryStats?.map((cat: any) => (
+            {health?.categoryStats?.map((cat: CategoryStatItem) => (
               <div
                 key={cat.id}
                 className="pro-card p-4 rounded-2xl space-y-2 border border-slate-800"

@@ -19,9 +19,21 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+interface DashboardContribution {
+  id: string;
+  title: string;
+  description: string;
+  projectEventName?: string;
+  evidenceUrl: string;
+  status: string;
+  pointsAwarded: number;
+  reviewerNotes?: string;
+  category?: { name: string; colorHex: string };
+}
+
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
-  const [contributions, setContributions] = useState<Record<string, unknown>[]>([]);
+  const [contributions, setContributions] = useState<DashboardContribution[]>([]);
   const [contribLoading, setContribLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [copied, setCopied] = useState(false);
@@ -48,6 +60,7 @@ export default function Dashboard() {
     } else {
       setContribLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statusFilter]);
 
   if (authLoading || (user && contribLoading)) {
@@ -332,7 +345,7 @@ export default function Dashboard() {
 
                       {c.reviewerNotes && (
                         <div className="text-slate-400 italic text-[11px] bg-slate-900/60 px-3 py-1 rounded-full border border-slate-800">
-                          Reviewer: "{c.reviewerNotes}"
+                          Reviewer: &quot;{String(c.reviewerNotes)}&quot;
                         </div>
                       )}
                     </div>

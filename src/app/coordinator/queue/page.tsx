@@ -18,8 +18,18 @@ import {
   Sparkles,
 } from "lucide-react";
 
+interface QueueItem {
+  id: string;
+  title: string;
+  description: string;
+  projectEventName?: string;
+  evidenceUrl: string;
+  category?: { name: string; colorHex: string; baseXp: number };
+  user?: { name: string; avatarUrl?: string; department?: string; currentLevel?: string };
+}
+
 export default function CoordinatorQueue() {
-  const [queue, setQueue] = useState<any[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -47,6 +57,7 @@ export default function CoordinatorQueue() {
 
   useEffect(() => {
     fetchQueue();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedItem = queue.find((q) => q.id === selectedId) || queue[0];
@@ -56,6 +67,7 @@ export default function CoordinatorQueue() {
       setCustomXp(selectedItem.category?.baseXp || 30);
       setNotes("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
   const handleTriage = async (action: "approve" | "clarification" | "reject") => {

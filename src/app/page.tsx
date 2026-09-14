@@ -10,12 +10,8 @@ import {
   ArrowRight,
   UserCheck,
   Trophy,
-  Award,
-  BarChart3,
   ChevronDown,
-  Layers,
   FileCheck,
-  Sliders,
   Share2,
   Lock,
 } from "lucide-react";

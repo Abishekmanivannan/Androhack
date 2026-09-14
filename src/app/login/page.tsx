@@ -44,7 +44,7 @@ export default function LoginPage() {
       } else {
         setError(data.error || "Authentication failed");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export default function LoginPage() {
         }
         router.refresh();
       }
-    } catch (e) {
+    } catch {
       setError("Failed to log in as demo account");
     } finally {
       setLoading(false);

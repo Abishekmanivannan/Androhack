@@ -2,11 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import { Trophy, Award, Sparkles } from "lucide-react";
+import { Trophy, Sparkles } from "lucide-react";
+
+interface LeaderboardMember {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  department?: string;
+  currentLevel?: string;
+  periodXp: number;
+  velocityDelta?: number;
+  verifiedCount: number;
+}
 
 export default function LeaderboardPage() {
   const [period, setPeriod] = useState("all-time");
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLeaderboard = async () => {
@@ -26,6 +37,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
   return (

@@ -15,10 +15,17 @@ import {
   Sparkles,
 } from "lucide-react";
 
+interface CategoryOption {
+  id: string;
+  name: string;
+  baseXp: number;
+  colorHex: string;
+}
+
 export default function NewContribution() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [fetchingGh, setFetchingGh] = useState(false);
@@ -26,7 +33,7 @@ export default function NewContribution() {
   const [ghSuccess, setGhSuccess] = useState("");
 
   // Form State
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [projectEventName, setProjectEventName] = useState("");
@@ -110,7 +117,7 @@ export default function NewContribution() {
         const data = await res.json();
         setError(data.error || "Failed to submit contribution");
       }
-    } catch (e) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setSubmitting(false);

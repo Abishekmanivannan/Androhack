@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     if (action === "approve") {
       const xpToAward = typeof pointsAwarded === "number" ? pointsAwarded : contribution.category.baseXp;
 
-      const updatedContrib = await prisma.contribution.update({
+      await prisma.contribution.update({
         where: { id: contributionId },
         data: {
           status: "verified",

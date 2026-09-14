@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const categoryId = searchParams.get("categoryId");
 
-    const whereClause: any = { userId: user.id };
+    const whereClause: Record<string, unknown> = { userId: user.id };
     if (status && status !== "all") whereClause.status = status;
     if (categoryId && categoryId !== "all") whereClause.categoryId = categoryId;
 
