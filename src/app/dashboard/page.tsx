@@ -21,7 +21,7 @@ import {
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
-  const [contributions, setContributions] = useState<any[]>([]);
+  const [contributions, setContributions] = useState<Record<string, unknown>[]>([]);
   const [contribLoading, setContribLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [copied, setCopied] = useState(false);
