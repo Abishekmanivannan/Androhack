@@ -58,7 +58,7 @@ export default function Home() {
                   Launch Platform Workspace <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/portfolio/Alex%20Rivera"
+                  href="/portfolio/abishek"
                   className="pro-btn-secondary px-6 py-3.5 text-sm font-semibold flex items-center gap-2"
                 >
                   <ShieldCheck className="w-4 h-4 text-cyan-400" /> View Verified Sample Portfolio
@@ -71,9 +71,9 @@ export default function Home() {
               <div className="w-full max-w-md pro-panel rounded-3xl p-8 border border-slate-800 space-y-6 shadow-2xl relative">
                 <div className="w-20 h-20 mx-auto rounded-2xl bg-slate-900 border border-indigo-500/30 flex items-center justify-center p-3">
                   <img
-                    src="/hero_avatar.png"
+                    src="/logo_icon.png"
                     alt="ClubConnect Emblem"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(99,102,241,0.7)]"
                   />
                 </div>
 

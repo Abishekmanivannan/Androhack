@@ -35,10 +35,10 @@ export async function POST(req: Request) {
       // Find seed user for this role
       const seedEmail =
         targetRole === "coordinator"
-          ? "coordinator@club.org"
+          ? "aniruthan@club.org"
           : targetRole === "admin"
           ? "admin@club.org"
-          : "alex@club.org";
+          : "abishek@club.org";
       
       const seedUser = await prisma.user.findUnique({
         where: { email: seedEmail },

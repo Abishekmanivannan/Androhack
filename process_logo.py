@@ -17,7 +17,7 @@ for item in datas:
         # Keep original blue logo pixel
         newData.append((r, g, b, 255))
 
-img.putdata(newData)
+img.putdata(newData)    
 img.save(r"d:\androhack\public\hero_avatar.png", "PNG")
 
 # Also create a version pre-blended with #120e24 background

@@ -128,8 +128,12 @@ export default function Navbar() {
           
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
-              <Zap className="w-4 h-4 fill-current" />
+            <div className="w-9 h-9 rounded-xl bg-slate-900/90 border border-indigo-500/30 flex items-center justify-center p-1.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
+              <img
+                src="/logo_icon.png"
+                alt="ClubConnect Logo"
+                className="w-full h-full object-contain drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]"
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-base font-bold tracking-tight text-white group-hover:text-indigo-200 transition-colors">

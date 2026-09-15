@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Shield, User, UserCheck, ArrowRight } from "lucide-react";
+import { Zap, Shield, User, UserCheck, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +15,22 @@ export default function LoginPage() {
   const [role, setRole] = useState("member");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const demoAccounts = [
+    { name: "Abishek Manivannan", email: "abishek@club.org", role: "Member (Lead Systems Arch)" },
+    { name: "Ashwin Kumar", email: "ashwin@club.org", role: "Member (AI/ML Engineer)" },
+    { name: "Sujai Sundar", email: "sujai@club.org", role: "Member (Mobile App Dev)" },
+    { name: "Naresh Raja", email: "naresh@club.org", role: "Member (DevOps Lead)" },
+    { name: "Nithesh R", email: "nithesh@club.org", role: "Member (Security Auditor)" },
+    { name: "Varsha Srinivasan", email: "varsha@club.org", role: "Member (Lead UI/UX Designer)" },
+    { name: "Dheeraj Krishna", email: "dheeraj@club.org", role: "Member (Backend & DB Lead)" },
+    { name: "Jerome Fernandez", email: "jerome@club.org", role: "Member (Frontend & Creative)" },
+    { name: "Aniruthan S", email: "aniruthan@club.org", role: "Coordinator (Event Lead)" },
+    { name: "Vignesh K", email: "vignesh@club.org", role: "Member (Hardware & IoT)" },
+    { name: "Dinesh Karthik", email: "dinesh@club.org", role: "Member (Media & Promo)" },
+    { name: "Ram Prakash", email: "ram@club.org", role: "Member (Algorithms & Competitive)" },
+    { name: "Admin User", email: "admin@club.org", role: "Admin (Governance)" },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +96,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#0B0F19] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Brand Header */}
       <div className="text-center space-y-2 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30 mx-auto">
-          <Zap className="w-7 h-7 text-white fill-current" />
+        <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-indigo-500/40 flex items-center justify-center p-2.5 shadow-xl shadow-indigo-600/20 mx-auto">
+          <img
+            src="/logo_icon.png"
+            alt="ClubConnect Logo"
+            className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]"
+          />
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight">ClubConnect</h1>
         <p className="text-xs text-slate-400">
@@ -122,7 +142,7 @@ export default function LoginPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Alex Rivera"
+                  placeholder="Abishek Manivannan"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
@@ -135,7 +155,7 @@ export default function LoginPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Computer Science"
+                  placeholder="Computer Science & Engineering"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
@@ -166,7 +186,7 @@ export default function LoginPage() {
             <input
               type="email"
               required
-              placeholder="alex@club.org"
+              placeholder="abishek@club.org"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
@@ -197,33 +217,58 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo Quick Logins for Hackathon Testing */}
-        <div className="pt-4 border-t border-slate-800 space-y-2">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
-            ⚡ 1-Click Demo Login
+        {/* Demo Quick Logins for Hackathon Judges */}
+        <div className="pt-4 border-t border-slate-800 space-y-3">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center flex items-center justify-center gap-1">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>1-Click Hackathon Judge Demo Login</span>
           </div>
+
           <div className="grid grid-cols-3 gap-2">
             <button
-              onClick={() => handleQuickLogin("alex@club.org")}
+              onClick={() => handleQuickLogin("abishek@club.org")}
               className="p-2.5 rounded-xl pro-card text-center text-xs font-semibold text-slate-300 hover:text-white border border-slate-800"
             >
               <User className="w-4 h-4 mx-auto mb-1 text-indigo-400" />
-              Member
+              Abishek (Member)
             </button>
             <button
-              onClick={() => handleQuickLogin("coordinator@club.org")}
+              onClick={() => handleQuickLogin("aniruthan@club.org")}
               className="p-2.5 rounded-xl pro-card text-center text-xs font-semibold text-slate-300 hover:text-white border border-slate-800"
             >
               <UserCheck className="w-4 h-4 mx-auto mb-1 text-amber-400" />
-              Coordinator
+              Aniruthan (Coord)
             </button>
             <button
               onClick={() => handleQuickLogin("admin@club.org")}
               className="p-2.5 rounded-xl pro-card text-center text-xs font-semibold text-slate-300 hover:text-white border border-slate-800"
             >
               <Shield className="w-4 h-4 mx-auto mb-1 text-rose-400" />
-              Admin
+              Admin User
             </button>
+          </div>
+
+          {/* Quick Select Dropdown for all 12 Demo Profiles */}
+          <div className="pt-1">
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">
+              Select Demo Profile (12 Hackathon Profiles):
+            </label>
+            <select
+              onChange={(e) => {
+                if (e.target.value) handleQuickLogin(e.target.value);
+              }}
+              className="w-full px-3 py-2 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-300 focus:outline-none focus:border-indigo-500"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                -- Select Demo Account to Login --
+              </option>
+              {demoAccounts.map((acc) => (
+                <option key={acc.email} value={acc.email}>
+                  {acc.name} — {acc.role}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

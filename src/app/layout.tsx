@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "ClubConnect | Member Contribution & Recognition Platform",
   description:
     "Systematically track, verify, and recognize student club contributions. Earn XP, badges, and build your shareable contribution portfolio.",
+  icons: {
+    icon: "/logo_icon.png",
+  },
 };
 
 export default function RootLayout({
