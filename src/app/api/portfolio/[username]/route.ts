@@ -10,7 +10,7 @@ export async function GET(
     const decodedIdentifier = decodeURIComponent(username).toLowerCase();
 
     // Match by user ID, email prefix, or full name match
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         OR: [
           { id: decodedIdentifier },
@@ -48,12 +48,7 @@ export async function GET(
       return NextResponse.json({ error: "This portfolio is set to private" }, { status: 403 });
     }
 
-    let parsedSkills: string[] = [];
-    try {
-      parsedSkills = JSON.parse(user.skills || "[]");
-    } catch {
-      parsedSkills = [];
-    }
+    const parsedSkills = Array.isArray(user.skills) ? user.skills : [];
 
     return NextResponse.json({
       portfolio: {

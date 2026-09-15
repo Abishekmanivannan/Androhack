@@ -4,9 +4,23 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { Shield, Sliders, Database, Save } from "lucide-react";
 
+interface CategoryItem {
+  id: string;
+  name: string;
+  baseXp: number;
+  colorHex: string;
+}
+
+interface AuditLogItem {
+  id: string;
+  action: string;
+  createdAt: string;
+  actor?: { name: string };
+}
+
 export default function AdminPanel() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editedXp, setEditedXp] = useState<{ [key: string]: number }>({});
@@ -19,7 +33,7 @@ export default function AdminPanel() {
         const data = await catRes.json();
         setCategories(data.categories || []);
         const xpMap: { [key: string]: number } = {};
-        data.categories?.forEach((c: any) => {
+        data.categories?.forEach((c: CategoryItem) => {
           xpMap[c.id] = c.baseXp;
         });
         setEditedXp(xpMap);

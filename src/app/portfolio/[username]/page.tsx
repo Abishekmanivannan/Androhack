@@ -13,13 +13,43 @@ import {
   QrCode,
 } from "lucide-react";
 
+interface UserBadgeItem {
+  id: string;
+  badge?: { name: string; description: string };
+}
+
+interface ContributionItem {
+  id: string;
+  title: string;
+  description: string;
+  projectEventName?: string;
+  evidenceUrl: string;
+  pointsAwarded: number;
+  verifiedAt?: string;
+  createdAt: string;
+  category?: { name: string; colorHex: string };
+}
+
+interface PortfolioData {
+  id: string;
+  name: string;
+  email: string;
+  department?: string;
+  avatarUrl?: string;
+  skills?: string[];
+  totalXp: number;
+  currentLevel: string;
+  userBadges?: UserBadgeItem[];
+  contributions?: ContributionItem[];
+}
+
 export default function PortfolioPage({
   params,
 }: {
   params: Promise<{ username: string }>;
 }) {
   const { username } = use(params);
-  const [portfolio, setPortfolio] = useState<any>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -164,9 +194,9 @@ export default function PortfolioPage({
             <h2 className="text-base font-bold flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-400" /> Earned Club Badges
             </h2>
-            {portfolio.userBadges?.length > 0 ? (
+            {(portfolio.userBadges?.length ?? 0) > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {portfolio.userBadges.map((ub: any) => (
+                {portfolio.userBadges?.map((ub: UserBadgeItem) => (
                   <div
                     key={ub.id}
                     className="pro-card p-3.5 rounded-2xl space-y-1.5 border border-slate-800 flex items-center gap-3"
@@ -198,7 +228,7 @@ export default function PortfolioPage({
           </h2>
 
           <div className="space-y-4">
-            {portfolio.contributions?.map((c: any) => (
+            {portfolio.contributions?.map((c: ContributionItem) => (
               <div
                 key={c.id}
                 className="pro-card p-5 rounded-2xl space-y-3 border border-slate-800"

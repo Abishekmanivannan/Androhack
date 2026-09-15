@@ -56,6 +56,10 @@ export function getTierFromXp(xp: number): {
   }
 }
 
+export function calculateLevel(xp: number): string {
+  return getTierFromXp(xp).levelName;
+}
+
 export async function checkAndAwardBadges(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },

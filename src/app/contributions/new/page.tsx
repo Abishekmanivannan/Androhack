@@ -4,482 +4,433 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import {
+  PlusCircle,
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
-  Upload,
-  Link as LinkIcon,
-  Github,
-  Zap,
-  ShieldCheck,
+  FileText,
+  Link2,
+  Briefcase,
+  Layers,
   Sparkles,
+  AlertCircle,
 } from "lucide-react";
 
-export default function NewContribution() {
+interface Category {
+  id: string;
+  name: string;
+  baseXp: number;
+  colorHex: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+}
+
+interface EventItem {
+  id: string;
+  title: string;
+}
+
+export default function NewContributionPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loadingCats, setLoadingCats] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [fetchingGh, setFetchingGh] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [ghSuccess, setGhSuccess] = useState("");
 
   // Form State
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [categoryId, setCategoryId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [eventId, setEventId] = useState("");
   const [projectEventName, setProjectEventName] = useState("");
-  const [evidenceType, setEvidenceType] = useState<"url" | "github" | "file">("github");
+  const [evidenceType, setEvidenceType] = useState("github");
   const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [isDraft, setIsDraft] = useState(false);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => {
-        setCategories(data.categories || []);
-        if (data.categories?.length > 0) {
-          setSelectedCategory(data.categories[0]);
-        }
-      })
-      .finally(() => setLoadingCats(false));
+    fetchFormData();
   }, []);
 
-  const handleFetchGitHub = async () => {
-    if (!evidenceUrl || !evidenceUrl.includes("github.com")) {
-      setError("Please enter a valid GitHub Pull Request or Issue URL first.");
-      return;
-    }
-    setFetchingGh(true);
-    setError("");
-    setGhSuccess("");
-
+  const fetchFormData = async () => {
     try {
-      const res = await fetch("/api/github/pr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: evidenceUrl }),
-      });
+      const [catRes, projRes, eventRes] = await Promise.all([
+        fetch("/api/categories"),
+        fetch("/api/projects"),
+        fetch("/api/events"),
+      ]);
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.metadata) {
-          setTitle(data.metadata.title || title);
-          setDescription(data.metadata.description || description);
-          setProjectEventName(data.metadata.projectEventName || projectEventName);
-          setGhSuccess(`✨ Auto-filled PR metadata from ${data.metadata.projectEventName}!`);
+      if (catRes.ok) {
+        const data = await catRes.json();
+        setCategories(data.categories || []);
+        if (data.categories?.length > 0) {
+          setCategoryId(data.categories[0].id);
         }
-      } else {
-        setError("Could not fetch metadata for this URL. You can still fill details manually.");
+      }
+
+      if (projRes.ok) {
+        const data = await projRes.json();
+        setProjects(data.projects || []);
+      }
+
+      if (eventRes.ok) {
+        const data = await eventRes.json();
+        setEvents(data.events || []);
       }
     } catch {
-      setError("Failed to reach GitHub API");
-    } finally {
-      setFetchingGh(false);
+      // Ignore
     }
   };
 
-  const handleSubmit = async (isDraft = false) => {
-    setError("");
-    if (!selectedCategory || !title || !description || !evidenceUrl) {
-      setError("Please complete all required fields.");
-      return;
-    }
+  const selectedCategory = categories.find((c) => c.id === categoryId);
 
-    setSubmitting(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
       const res = await fetch("/api/contributions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          categoryId: selectedCategory.id,
+          categoryId,
           title,
           description,
-          projectEventName,
+          projectId: projectId || undefined,
+          eventId: eventId || undefined,
+          projectEventName: projectEventName || "General Activity",
           evidenceType,
           evidenceUrl,
           isDraft,
         }),
       });
 
-      if (res.ok) {
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to submit contribution");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit contribution");
       }
-    } catch (e) {
-      setError("An unexpected error occurred");
+
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(message);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-white">
+    <div className="min-h-screen bg-[#07090E] text-slate-100 flex flex-col font-sans">
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-        {/* Step Indicator Header */}
-        <div className="space-y-4 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            Submit Contribution Evidence
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {/* Header */}
+        <div className="border-b border-slate-800 pb-6">
+          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+            <PlusCircle className="w-6 h-6 text-indigo-400" /> 6-Step Contribution Wizard
           </h1>
-          <p className="text-xs text-slate-400">
-            Submit verified proof of your code, design, event, or mentoring work to earn club XP.
+          <p className="text-xs text-slate-400 mt-1">
+            Submit code PRs, design assets, event operations, or mentorship for coordinator review
           </p>
+        </div>
 
-          {/* Stepper Wizard Bar */}
-          <div className="flex items-center justify-center gap-2 pt-4">
-            {[
-              { num: 1, label: "Category" },
-              { num: 2, label: "Evidence" },
-              { num: 3, label: "Details" },
-              { num: 4, label: "Confirm" },
-            ].map((s, idx) => (
-              <div key={s.num} className="flex items-center gap-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    step === s.num
-                      ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/30"
-                      : step > s.num
-                      ? "bg-emerald-600 text-white"
-                      : "bg-slate-900 text-slate-500 border border-slate-800"
-                  }`}
-                >
-                  {step > s.num ? <CheckCircle2 className="w-4 h-4" /> : s.num}
-                </div>
-                <span
-                  className={`text-xs font-semibold ${
-                    step === s.num ? "text-white" : "text-slate-500"
-                  }`}
-                >
-                  {s.label}
-                </span>
-                {idx < 3 && (
-                  <div className="w-8 h-0.5 bg-slate-800 mx-1 hidden sm:block" />
-                )}
-              </div>
-            ))}
-          </div>
+        {/* Wizard Progress Bar */}
+        <div className="grid grid-cols-5 gap-2 text-center text-xs font-semibold">
+          {[
+            { stepNum: 1, label: "Category" },
+            { stepNum: 2, label: "Details" },
+            { stepNum: 3, label: "Project/Event" },
+            { stepNum: 4, label: "Evidence" },
+            { stepNum: 5, label: "Preview & Submit" },
+          ].map((s) => (
+            <div
+              key={s.stepNum}
+              onClick={() => s.stepNum < step && setStep(s.stepNum)}
+              className={`py-2 rounded-lg border transition-colors cursor-pointer ${
+                step === s.stepNum
+                  ? "bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30"
+                  : step > s.stepNum
+                  ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
+                  : "bg-slate-900 border-slate-800 text-slate-500"
+              }`}
+            >
+              {s.label}
+            </div>
+          ))}
         </div>
 
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs font-semibold">
-            {error}
+          <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        {ghSuccess && (
-          <div className="p-4 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 text-indigo-200 text-xs font-semibold">
-            {ghSuccess}
-          </div>
-        )}
-
-        {/* Wizard Form Container */}
-        <div className="pro-panel rounded-3xl p-6 sm:p-8 space-y-6 border border-slate-800">
+        <form onSubmit={handleSubmit} className="pro-panel p-6 sm:p-8 space-y-6">
           {/* STEP 1: CATEGORY SELECTION */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-bold">Step 1: Select Contribution Category</h2>
-                <p className="text-xs text-slate-400">
-                  Select the domain that best fits your activity. Point weights are pre-configured by club admins.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-400" /> Step 1: Select Contribution Category
+              </h2>
 
-              {loadingCats ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-pulse">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <div key={n} className="h-20 pro-card rounded-2xl bg-slate-900/40" />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`p-4 rounded-2xl text-left pro-card flex flex-col justify-between space-y-2 border transition-all ${
-                        selectedCategory?.id === cat.id
-                          ? "border-indigo-500 bg-indigo-950/40 ring-2 ring-indigo-500/30"
-                          : "border-slate-800 hover:border-slate-700"
-                      }`}
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: cat.colorHex }}
-                      />
-                      <div>
-                        <div className="text-sm font-bold text-white">{cat.name}</div>
-                        <div className="text-[11px] font-mono text-indigo-400 font-bold">
-                          +{cat.baseXp} Base XP
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryId(cat.id)}
+                    className={`p-4 rounded-xl border text-left transition-all space-y-2 ${
+                      categoryId === cat.id
+                        ? "bg-indigo-950/80 border-indigo-500 ring-2 ring-indigo-500/40 text-white"
+                        : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
+                    }`}
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: cat.colorHex }}
+                    />
+                    <div className="font-bold text-xs">{cat.name}</div>
+                    <div className="text-[11px] text-slate-400">+{cat.baseXp} Base XP</div>
+                  </button>
+                ))}
+              </div>
 
               <div className="pt-4 flex justify-end">
                 <button
                   type="button"
-                  disabled={!selectedCategory}
                   onClick={() => setStep(2)}
-                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
+                  disabled={!categoryId}
+                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5"
                 >
-                  NEXT: ADD EVIDENCE <ChevronRight className="w-4 h-4" />
+                  Next Step <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 2: EVIDENCE & AUTO-FETCH */}
+          {/* STEP 2: DETAILS */}
           {step === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-bold">Step 2: Verification Proof & Links</h2>
-                <p className="text-xs text-slate-400">
-                  Provide a direct GitHub PR, Figma design link, or document proof URL.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <FileText className="w-4 h-4 text-indigo-400" /> Step 2: Title & Detailed Description
+              </h2>
 
-              {/* Evidence Type Switcher */}
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEvidenceType("github")}
-                  className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all ${
-                    evidenceType === "github"
-                      ? "border-indigo-500 bg-indigo-950/60 text-white"
-                      : "border-slate-800 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Github className="w-4 h-4" /> GitHub PR / Issue
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEvidenceType("url")}
-                  className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all ${
-                    evidenceType === "url"
-                      ? "border-indigo-500 bg-indigo-950/60 text-white"
-                      : "border-slate-800 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <LinkIcon className="w-4 h-4" /> Figma / Drive / Web
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEvidenceType("file")}
-                  className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all ${
-                    evidenceType === "file"
-                      ? "border-indigo-500 bg-indigo-950/60 text-white"
-                      : "border-slate-800 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Upload className="w-4 h-4" /> File Document
-                </button>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300">Contribution Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Implemented Google OAuth Auth Handler"
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-300">
-                  Direct Proof URL *
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    required
-                    placeholder={
-                      evidenceType === "github"
-                        ? "https://github.com/clubconnect/core/pull/42"
-                        : "https://figma.com/file/xyz or https://drive.google.com/..."
-                    }
-                    value={evidenceUrl}
-                    onChange={(e) => setEvidenceUrl(e.target.value)}
-                    className="flex-1 px-4 py-2.5 rounded-xl pro-input text-xs font-mono text-cyan-300"
-                  />
-                  {evidenceType === "github" && (
-                    <button
-                      type="button"
-                      disabled={fetchingGh || !evidenceUrl}
-                      onClick={handleFetchGitHub}
-                      className="pro-btn-secondary px-4 py-2.5 text-xs font-bold shrink-0 flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      {fetchingGh ? "Fetching..." : "Auto-Fill"}
-                    </button>
-                  )}
-                </div>
+                <label className="text-xs font-semibold text-slate-300">Detailed Description *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe your work, technical approach, impact, or outcomes..."
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="pt-4 flex items-center justify-between">
+              <div className="pt-4 flex justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-2 text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1"
+                  className="pro-btn-secondary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5"
                 >
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
                 <button
                   type="button"
-                  disabled={!evidenceUrl}
                   onClick={() => setStep(3)}
-                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
+                  disabled={!title.trim() || !description.trim()}
+                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5"
                 >
-                  NEXT: DETAILS <ChevronRight className="w-4 h-4" />
+                  Next Step <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: DETAILS */}
+          {/* STEP 3: PROJECT/EVENT ATTRIBUTION */}
           {step === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-bold">Step 3: Activity Details</h2>
-                <p className="text-xs text-slate-400">
-                  Describe what you built, organized, or designed for the club.
-                </p>
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-indigo-400" /> Step 3: Project / Event Attribution
+              </h2>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300">Link to Club Project (Optional)</label>
+                <select
+                  value={projectId}
+                  onChange={(e) => {
+                    setProjectId(e.target.value);
+                    const proj = projects.find((p) => p.id === e.target.value);
+                    if (proj) setProjectEventName(proj.name);
+                  }}
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="">None (Independent Activity)</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Contribution Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Implemented OAuth Auth Flow / Organized Hackathon"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Associated Project / Repository / Event Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ClubConnect Core / Fall Hackathon 2026"
-                    value={projectEventName}
-                    onChange={(e) => setProjectEventName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Detailed Summary *
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Outline your specific contribution, PR details, or event impact..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl pro-input text-sm"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300">Project or Event Name Label</label>
+                <input
+                  type="text"
+                  value={projectEventName}
+                  onChange={(e) => setProjectEventName(e.target.value)}
+                  placeholder="e.g. ClubConnect Core App or Fall Hackathon 2026"
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="pt-4 flex items-center justify-between">
+              <div className="pt-4 flex justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-4 py-2 text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1"
+                  className="pro-btn-secondary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5"
                 >
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
                 <button
                   type="button"
-                  disabled={!title || !description}
                   onClick={() => setStep(4)}
-                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
+                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5"
                 >
-                  REVIEW & PREVIEW <ChevronRight className="w-4 h-4" />
+                  Next Step <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 4: PREVIEW & CONFIRMATION */}
+          {/* STEP 4: EVIDENCE */}
           {step === 4 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-bold">Step 4: Review & Dispatch</h2>
-                <p className="text-xs text-slate-400">
-                  Verify your submission before sending to the coordinator review queue.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-indigo-400" /> Step 4: Verification Evidence Link
+              </h2>
 
-              <div className="p-5 rounded-2xl pro-card border border-slate-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span
-                    className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full text-white"
-                    style={{
-                      backgroundColor:
-                        selectedCategory?.colorHex || "#6366F1",
-                    }}
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { type: "github", label: "GitHub PR / Commit" },
+                  { type: "figma", label: "Figma Link" },
+                  { type: "document", label: "Doc / Report" },
+                  { type: "url", label: "Web URL" },
+                ].map((ev) => (
+                  <button
+                    key={ev.type}
+                    type="button"
+                    onClick={() => setEvidenceType(ev.type)}
+                    className={`py-2 px-3 rounded-lg border text-xs font-semibold capitalize transition-colors ${
+                      evidenceType === ev.type
+                        ? "bg-indigo-600 border-indigo-500 text-white"
+                        : "bg-slate-900 border-slate-800 text-slate-400"
+                    }`}
                   >
-                    {selectedCategory?.name}
-                  </span>
-                  <span className="text-sm font-bold text-indigo-400 font-mono flex items-center gap-1">
-                    <Zap className="w-4 h-4" /> +{selectedCategory?.baseXp} XP Expected
-                  </span>
-                </div>
-
-                <div>
-                  <div className="text-base font-bold text-white">{title}</div>
-                  <div className="text-xs text-slate-400">{projectEventName}</div>
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                  {description}
-                </p>
-
-                <div className="text-xs text-cyan-400 font-mono truncate">
-                  Evidence: {evidenceUrl}
-                </div>
+                    {ev.label}
+                  </button>
+                ))}
               </div>
 
-              <div className="pt-4 flex items-center justify-between gap-3">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300">Evidence URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={evidenceUrl}
+                  onChange={(e) => setEvidenceUrl(e.target.value)}
+                  placeholder="https://github.com/club/repo/pull/42 or Figma / Drive link"
+                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="pt-4 flex justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="px-4 py-2 text-slate-400 hover:text-white text-xs font-semibold flex items-center gap-1"
+                  className="pro-btn-secondary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5"
                 >
-                  <ChevronLeft className="w-4 h-4" /> Edit
+                  <ChevronLeft className="w-4 h-4" /> Back
                 </button>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleSubmit(true)}
-                    className="pro-btn-secondary px-4 py-2.5 text-xs font-semibold"
-                  >
-                    Save Draft
-                  </button>
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleSubmit(false)}
-                    className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    {submitting ? "Dispatching..." : "Dispatch to Queue"}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep(5)}
+                  disabled={!evidenceUrl.trim()}
+                  className="pro-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-1.5"
+                >
+                  Preview & Submit <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           )}
-        </div>
+
+          {/* STEP 5: PREVIEW & SUBMIT */}
+          {step === 5 && (
+            <div className="space-y-6">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" /> Step 5: Review & Submit Contribution
+              </h2>
+
+              <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="text-[10px] font-bold px-2.5 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: selectedCategory?.colorHex || "#6366F1" }}
+                  >
+                    {selectedCategory?.name} (+{selectedCategory?.baseXp} XP Base)
+                  </span>
+                  <span className="text-xs text-slate-400">{projectEventName || "General Activity"}</span>
+                </div>
+
+                <h3 className="text-sm font-bold text-white">{title}</h3>
+                <p className="text-xs text-slate-300 whitespace-pre-wrap">{description}</p>
+
+                <div className="text-xs text-indigo-400 font-semibold truncate pt-2 border-t border-slate-800">
+                  Evidence ({evidenceType}): {evidenceUrl}
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-between items-center">
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  className="pro-btn-secondary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Edit Details
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="pro-btn-primary px-8 py-3 text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2"
+                >
+                  {loading ? "Submitting..." : "Confirm & Submit to Coordinator Queue"}
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
       </main>
     </div>
   );
