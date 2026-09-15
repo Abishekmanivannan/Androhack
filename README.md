@@ -2,6 +2,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Supabase database
+
+1. Create a Supabase project and copy the transaction-pooler connection string into `.env` as `DATABASE_URL`.
+2. Copy `.env.example` to `.env` and set a private `JWT_SECRET`.
+3. Run `supabase/migrations/20260915000000_initial_schema.sql` in the Supabase SQL Editor.
+4. Run `npm run db:generate` and `npm run db:seed` to generate Prisma Client and load the demo data.
+
+The app uses Prisma on the server with Supabase PostgreSQL. Row Level Security is enabled on every application table; browser access is intentionally not exposed because authentication is handled by the app's server-side session cookie.
+
 First, run the development server:
 
 ```bash
